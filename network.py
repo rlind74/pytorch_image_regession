@@ -9,12 +9,13 @@ from torch.utils.tensorboard import SummaryWriter
 
 from data_loading import RegressionTaskData
 
+imageSize = 200
 
 class CNNRegression(nn.Module):
     """
     This will be the very basic CNN model we will use for the regression task.
     """
-    def __init__(self, image_size: Tuple[int, int, int] = (3, 100, 100)):
+    def __init__(self, image_size: Tuple[int, int, int] = (3, imageSize, imageSize)):
         super(CNNRegression, self).__init__()
         self.image_size = image_size
         self.conv1 = nn.Conv2d(in_channels=self.image_size[0], out_channels=4, kernel_size=3, stride=1, padding=1)
@@ -35,30 +36,30 @@ class CNNRegression(nn.Module):
         still the correct shape.
         """
         x = self.conv1(x)
-        # print('Size of tensor after each layer')
-        # print(f'conv1 {x.size()}')
+        #print('Size of tensor after each layer')
+        #print(f'conv1 {x.size()}')
         x = nn.functional.relu(x)
-        # print(f'relu1 {x.size()}')
+        #print(f'relu1 {x.size()}')
         x = self.pool1(x)
-        # print(f'pool1 {x.size()}')
+        #print(f'pool1 {x.size()}')
         x = self.conv2(x)
-        # print(f'conv2 {x.size()}')
+        #print(f'conv2 {x.size()}')
         x = nn.functional.relu(x)
-        # print(f'relu2 {x.size()}')
+        #print(f'relu2 {x.size()}')
         x = self.pool2(x)
-        # print(f'pool2 {x.size()}')
+        #print(f'pool2 {x.size()}')
         x = x.view(-1, self.linear_line_size)
-        # print(f'view1 {x.size()}')
+        #print(f'view1 {x.size()}')
         x = self.fc1(x)
-        # print(f'fc1 {x.size()}')
+        #print(f'fc1 {x.size()}')
         x = nn.functional.relu(x)
-        # print(f'relu2 {x.size()}')
+        #print(f'relu2 {x.size()}')
         x = self.fc2(x)
-        # print(f'fc2 {x.size()}')
+        #print(f'fc2 {x.size()}')
         return x
     
 
-def train_network(device, n_epochs: int = 10, image_size: Tuple[int, int, int] = (3, 100, 100)):
+def train_network(device, n_epochs: int = 10, image_size: Tuple[int, int, int] = (3, imageSize, imageSize)):
     """
     This trains the network for a set number of epochs.
     """
@@ -102,14 +103,14 @@ def train_network(device, n_epochs: int = 10, image_size: Tuple[int, int, int] =
     return model
 
 
-def save_model(model, filename='3_100_100.pth'):
+def save_model(model, filename='3_'+str(imageSize)+'_'+str(imageSize)+'.pth'):
     """
     After training the model, save it so we can use it later.
     """
     torch.save(model.state_dict(), filename)
 
 
-def load_model(image_size=(3, 100, 100), filename='3_100_100.pth'):
+def load_model(image_size=(3, imageSize, imageSize), filename='3'+str(imageSize)+'_'+str(imageSize)+'.pth'):
     """
     Load the model from the saved state dictionary.
     """
@@ -118,7 +119,7 @@ def load_model(image_size=(3, 100, 100), filename='3_100_100.pth'):
     return model
 
 
-def evaluate_network(model, device, image_size: Tuple[int, int, int] = (3, 100, 100)):
+def evaluate_network(model, device, image_size: Tuple[int, int, int] = (3, imageSize, imageSize)):
     """
     This evaluates the network on the test data.
     """
@@ -146,6 +147,12 @@ def evaluate_network(model, device, image_size: Tuple[int, int, int] = (3, 100, 
             # which is probably more meaningful to humans that the MSE loss
             outputs_np = outputs.cpu().numpy()
             targets_np = targets.cpu().numpy()
+            print("outputs")
+            for out in outputs_np:
+                print(out[0], out[1])
+            print("ground truth")
+            for t in targets_np:
+                print(t[0], t[1])
             output_angles = np.array([np.arctan2(out[0], out[1]) for out in outputs_np])
             target_angles = np.array([np.arctan2(t[0], t[1]) for t in targets_np])
             # This is probably not a great way to calculate the angle error 
@@ -167,8 +174,8 @@ if __name__ == '__main__':
     print(f'Using device: {device}')
 
     # Train the model
-    image_size: Tuple[int, int, int] = (3, 100, 100)
-    model = train_network(device, 20, image_size=image_size)
+    image_size: Tuple[int, int, int] = (3, imageSize, imageSize)
+    model = train_network(device, 5, image_size=image_size) # input number of epochs here, default is 20
 
     # Save the model
     filename = f'{image_size[0]}_{image_size[1]}_{image_size[2]}.pth'
