@@ -12,11 +12,12 @@ import numpy as np
 
 
 # This is the path to the folder containing the images
-DEFAULT_IMAGE_FOLDER_PATH = Path('example_dataset/')
+DEFAULT_IMAGE_FOLDER_PATH = Path('example_dataset_dots_big/')
+# there is a ' in front of each float in the original data set, could this be it?
 
 # This script is set up to crop first, then resize
-DEFAULT_CENTRE_CROP_SIZE = 200
-DEFAULT_RESIZED_IMAGE_SIZE = 100
+DEFAULT_CENTRE_CROP_SIZE = 1800
+DEFAULT_RESIZED_IMAGE_SIZE = 200
 
 
 def get_transforms(grayscale: bool = False, crop_size: int = DEFAULT_CENTRE_CROP_SIZE, resize_size: int = DEFAULT_RESIZED_IMAGE_SIZE):
@@ -69,6 +70,8 @@ def load_image_targets_from_csv(csv_path: Path, header: bool = True) -> Dict[str
             line = line.strip().split(',')
             image_path = line[0]
             image_targets[image_path] = np.array([float(x) for x in line[1:]], dtype=np.float32)
+            #print("image target complete")
+            #print(image_targets)
     return image_targets
 
 
@@ -83,6 +86,8 @@ class RegressionImageFolder(datasets.ImageFolder):
     ) -> None:
         super().__init__(root, *args, **kwargs)
         paths, _ = zip(*self.imgs)
+        #for path in paths :
+        #    print(image_targets[str(path)])
         self.targets = [image_targets[str(path)] for path in paths]
         self.samples = self.imgs = list(zip(paths, self.targets))
 
@@ -123,7 +128,7 @@ class RegressionTaskData:
             transform=self.train_transforms
         )
         # This constructs the dataloader that actually determins how images will be loaded in batches
-        trainloader = torch.utils.data.DataLoader(train_data, batch_size=32)
+        trainloader = torch.utils.data.DataLoader(train_data, batch_size=32) # default batch is 32
         return trainloader
 
     def make_testloader(
@@ -153,6 +158,7 @@ class RegressionTaskData:
         else:
             plt.imshow(images[0].permute(1, 2, 0))
         plt.show()
+        plt.savefig()
 
 
 if __name__ == '__main__':
